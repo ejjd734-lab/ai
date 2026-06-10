@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 // In dev, proxy API calls to the FastAPI backend so the SPA and API share an
 // origin (mirroring the single-container production setup).
 export default defineConfig({
+  base: "/ai/",
   plugins: [react()],
   server: {
     proxy: {
