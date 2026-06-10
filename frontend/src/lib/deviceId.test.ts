@@ -21,7 +21,7 @@ describe("getDeviceId", () => {
 
   it("returns a new id if localStorage is cleared", async () => {
     const { getDeviceId } = await import("./deviceId");
-    const id1 = getDeviceId();
+    getDeviceId();
     localStorage.clear();
     vi.resetModules();
     const { getDeviceId: getDeviceId2 } = await import("./deviceId");
