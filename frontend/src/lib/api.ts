@@ -7,8 +7,12 @@ import type {
   InsightsResponse,
 } from "./types";
 
+// Get API base URL from environment variable or default to relative path (for same-origin)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+
 async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(path, {
+  const url = API_BASE_URL ? `${API_BASE_URL}${path}` : path;
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -40,7 +44,10 @@ export function saveEntry(
 }
 
 export async function listEntries(deviceId: string): Promise<Entry[]> {
-  const res = await fetch(`/api/entries/${encodeURIComponent(deviceId)}`);
+  const url = API_BASE_URL
+    ? `${API_BASE_URL}/api/entries/${encodeURIComponent(deviceId)}`
+    : `/api/entries/${encodeURIComponent(deviceId)}`;
+  const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to load history (${res.status})`);
   }
