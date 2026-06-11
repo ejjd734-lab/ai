@@ -17,15 +17,13 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Announced via a polite live region so screen reader users hear when
-  // asynchronous results have arrived below the form.
   const [status, setStatus] = useState("");
 
   const loadHistory = useCallback(async () => {
     try {
       setEntries(await api.listEntries(deviceId));
     } catch {
-      // History is non-critical; fail silently rather than blocking the app.
+      // History is non-critical; fail silently.
     }
   }, [deviceId]);
 
@@ -37,7 +35,6 @@ export default function App() {
     setLoading(true);
     setError(null);
     setStatus("");
-    // Clear previous results so the skeleton shows cleanly.
     setResult(null);
     setInsights(null);
     try {
@@ -73,45 +70,29 @@ export default function App() {
 
   return (
     <>
-      <a className="skip-link" href="#main">
-        Skip to main content
-      </a>
+      <a className="skip-link" href="#main">Skip to main content</a>
       <header className="app-header">
         <h1>Carbon Footprint Awareness Platform</h1>
         <p>Understand, track, and reduce your carbon footprint.</p>
       </header>
-
       <main id="main">
         <CalculatorForm onSubmit={handleCalculate} loading={loading} />
-
         <div role="alert" aria-live="assertive">
           {error && <p className="error">{error}</p>}
         </div>
-        <p role="status" className="visually-hidden">
-          {status}
-        </p>
-
-        {/* Skeleton while loading */}
+        <p role="status" className="visually-hidden">{status}</p>
         {showSkeleton && <ResultSkeleton />}
-
-        {/* Real results once loaded */}
         {showResults && (
           <>
             <ResultBreakdown result={result!} />
             {insights && <InsightsPanel insights={insights} />}
             <div className="card">
-              <button
-                className="btn secondary"
-                onClick={handleSave}
-                disabled={saving}
-                aria-busy={saving}
-              >
+              <button className="btn secondary" onClick={handleSave} disabled={saving} aria-busy={saving}>
                 {saving ? "Saving…" : "Save this entry to my history"}
               </button>
             </div>
           </>
         )}
-
         <HistoryPanel entries={entries} />
       </main>
     </>

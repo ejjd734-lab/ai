@@ -1,108 +1,98 @@
-# Deploy to Vercel
+# 🚀 Deploy to Vercel — Step by Step
 
-This guide covers deploying the Carbon Footprint Platform to Vercel.
+## What's in this ZIP
 
-## Important Note
-
-Vercel is ideal for hosting **static frontends**. The backend (FastAPI) must be deployed separately to:
-- **Google Cloud Run** (free tier available)
-- **Render** (free tier available)  
-- **Heroku**, **Railway**, or any other platform supporting Python/FastAPI
-
-## Frontend-Only Deployment (Recommended)
-
-### Step 1: Deploy the Backend First
-
-Follow the main [DEPLOY.md](./DEPLOY.md) guide to deploy the backend to Cloud Run or Render.
-Note the deployed backend URL (e.g., `https://carbon-platform-xxx.a.run.app`).
-
-### Step 2: Connect GitHub to Vercel
-
-1. Push your code to GitHub (if not already done):
-   ```bash
-   git add .
-   git commit -m "Ready for Vercel deployment"
-   git push
-   ```
-
-2. Go to [vercel.com](https://vercel.com) and sign up / log in
-3. Click **"New Project"**
-4. Select your GitHub repository
-5. Configure build settings:
-   - **Framework**: Vite
-   - **Root Directory**: `frontend`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-
-### Step 3: Set Environment Variables
-
-Before deploying, add environment variables in Vercel:
-
-1. In the Vercel project settings, go to **Settings → Environment Variables**
-2. Add:
-   ```
-   VITE_API_BASE_URL = https://your-backend-api.com
-   ```
-   Replace `https://your-backend-api.com` with your actual backend URL
-
-3. Click **Deploy**
-
-### Step 4: Update Backend CORS
-
-Ensure your backend's `ALLOWED_ORIGINS` includes your Vercel URL:
-
-```bash
-# For Cloud Run:
-gcloud run services update carbon-platform \
-  --region us-central1 \
-  --set-env-vars "ALLOWED_ORIGINS=https://your-vercel-url.vercel.app"
-
-# For Render:
-Update the environment variable in your Render dashboard
+```
+vercel-deploy/
+├── vercel.json              ← Vercel build config (auto-detected)
+├── .env.example             ← Environment variable template
+├── VERCEL_DEPLOY.md         ← This guide
+└── frontend/
+    ├── index.html
+    ├── package.json
+    ├── tsconfig.json
+    ├── vite.config.ts
+    └── src/
+        ├── main.tsx
+        ├── App.tsx
+        ├── components/      ← All UI components
+        ├── lib/             ← API client, types, helpers
+        └── styles/          ← theme.css
 ```
 
 ---
 
-## Monorepo Deployment (Both Frontend + Backend on Vercel)
+## STEP 1 — Push to GitHub
 
-**Not recommended** — Vercel's serverless functions don't easily support FastAPI's ASGI pattern.
+```bash
+# Unzip this file, go into the folder, init git
+git init
+git add .
+git commit -m "Initial commit"
 
-If you still want to try:
+# Create a repo on github.com, then:
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git push -u origin main
+```
 
-1. Configure `vercel.json` to build both frontend and backend
-2. Create API routes in `api/` directory (requires rewriting FastAPI as Vercel functions)
-3. Much more complex than deploying backend separately
+---
 
-**Recommended**: Keep backend on Cloud Run / Render and frontend on Vercel.
+## STEP 2 — Deploy on Vercel
+
+1. Go to https://vercel.com → Sign in / Sign up
+2. Click **"Add New Project"**
+3. Click **"Import"** next to your GitHub repo
+4. Set these build settings:
+
+| Setting           | Value                              |
+|-------------------|------------------------------------|
+| Framework Preset  | **Vite**                           |
+| Root Directory    | `.` (repo root)                    |
+| Build Command     | `cd frontend && npm install && npm run build` |
+| Output Directory  | `frontend/dist`                    |
+
+> ✅ vercel.json already sets all of this — Vercel may auto-detect it.
+
+---
+
+## STEP 3 — Add Environment Variable
+
+In Vercel → **Settings → Environment Variables**, add:
+
+| Name                | Value                          |
+|---------------------|--------------------------------|
+| `VITE_API_BASE_URL` | `https://your-backend-url.com` |
+
+Then click **Redeploy**.
+
+---
+
+## STEP 4 — Update Backend CORS
+
+Add your Vercel URL to your backend's allowed origins:
+
+```
+ALLOWED_ORIGINS=https://your-project.vercel.app
+```
+
+---
+
+## API Endpoints Used by Frontend
+
+| Endpoint                    | Purpose                    |
+|-----------------------------|----------------------------|
+| POST /api/calculate         | Carbon footprint result    |
+| POST /api/insights          | AI recommendations         |
+| POST /api/entries           | Save to history            |
+| GET  /api/entries/:deviceId | Load history               |
 
 ---
 
 ## Troubleshooting
 
-**"API calls fail with CORS error"**
-→ Ensure backend's `ALLOWED_ORIGINS` includes your Vercel URL
-
-**"Blank page / 404 on refresh"**
-→ Vercel requires a rewrite rule for SPA routing. Check [vercel.json](./vercel.json) includes:
-```json
-{
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ]
-}
-```
-
-**"VITE_API_BASE_URL not defined"**
-→ Check environment variables are set in Vercel dashboard
-→ Redeploy after changing environment variables
-
----
-
-## Production Checklist
-
-- [ ] Backend deployed and accessible
-- [ ] Backend `ALLOWED_ORIGINS` updated with Vercel URL
-- [ ] Environment variables set in Vercel dashboard
-- [ ] Test API calls from Vercel frontend work
-- [ ] HTTPS enabled (Vercel handles automatically)
-- [ ] Custom domain configured (optional)
+| Problem                     | Fix                                              |
+|-----------------------------|--------------------------------------------------|
+| Blank page on refresh       | vercel.json rewrites rule handles this ✅        |
+| CORS error in browser       | Add Vercel URL to backend ALLOWED_ORIGINS        |
+| VITE_API_BASE_URL undefined | Set in Vercel Dashboard → Redeploy               |
+| Build fails                 | Run `cd frontend && npm run build` locally first |
