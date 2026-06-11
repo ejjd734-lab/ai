@@ -6,7 +6,8 @@ requires-python = ">=3.10"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --cov=app --cov-report=term-missing"
+# Coverage is a hard gate: the build fails if it drops below 90%.
+addopts = "-q --cov=app --cov-report=term-missing --cov-fail-under=90"
 pythonpath = ["."]
 
 [tool.ruff]
@@ -15,7 +16,14 @@ target-version = "py310"
 src = ["app", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "C4", "SIM"]
+# E/W pycodestyle, F pyflakes, I import order, N naming, UP modernisation,
+# ANN type annotations, B bugbear, C4 comprehensions, SIM simplification,
+# RUF ruff-native correctness rules.
+select = ["E", "W", "F", "I", "N", "UP", "ANN", "B", "C4", "SIM", "RUF"]
 # E501: line length handled by formatter; B008: FastAPI's Depends/Query/Path
 # default-argument pattern is intentional and idiomatic.
 ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# Test functions don't need exhaustive annotations; fixtures are duck-typed.
+"tests/**" = ["ANN"]

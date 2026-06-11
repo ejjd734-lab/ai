@@ -11,6 +11,8 @@ htmlcov/
 # Node / frontend
 node_modules/
 frontend/dist/
+frontend/coverage/
+coverage/
 dist/
 *.log
 npm-debug.log*

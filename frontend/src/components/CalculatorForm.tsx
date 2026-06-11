@@ -6,20 +6,29 @@ interface Props {
   loading: boolean;
 }
 
+// Input ceilings mirror the backend Pydantic bounds (app/models.py) so the
+// browser blocks out-of-range values before the API would reject them.
+const MAX_KM_WEEK = 20_000;
+const MAX_KWH_MONTH = 100_000;
+const MAX_FLIGHTS = 200;
+const MAX_USD_MONTH = 1_000_000;
+const MAX_WASTE_WEEK = 1_000;
+const MAX_HOUSEHOLD = 50;
+
 const DIET_OPTIONS: { value: DietType; label: string }[] = [
-  { value: "heavy_meat", label: "Heavy meat eater (daily meat)" },
-  { value: "medium_meat", label: "Average meat eater (most days)" },
-  { value: "low_meat", label: "Low meat (a few times/week)" },
-  { value: "pescatarian", label: "Pescatarian (fish but no meat)" },
+  { value: "heavy_meat", label: "Heavy meat eater" },
+  { value: "medium_meat", label: "Average meat eater" },
+  { value: "low_meat", label: "Low meat" },
+  { value: "pescatarian", label: "Pescatarian" },
   { value: "vegetarian", label: "Vegetarian" },
   { value: "vegan", label: "Vegan" },
 ];
 
 const FUEL_OPTIONS: { value: CarFuel; label: string }[] = [
-  { value: "petrol", label: "Petrol / Gasoline" },
+  { value: "petrol", label: "Petrol" },
   { value: "diesel", label: "Diesel" },
-  { value: "hybrid", label: "Hybrid (petrol + electric)" },
-  { value: "electric", label: "Fully electric" },
+  { value: "hybrid", label: "Hybrid" },
+  { value: "electric", label: "Electric" },
 ];
 
 /** Accessible footprint input form: labelled controls grouped in fieldsets. */
@@ -42,30 +51,23 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
   };
 
   return (
-    <form className="card" onSubmit={handleSubmit} aria-labelledby="calc-heading" noValidate>
+    <form className="card" onSubmit={handleSubmit} aria-labelledby="calc-heading">
       <h2 id="calc-heading">Estimate your annual footprint</h2>
-      <p className="form-intro" id="calc-desc">
-        Enter your typical lifestyle details to estimate your annual carbon footprint in kg CO₂e.
-      </p>
 
-      <fieldset aria-describedby="transport-desc">
+      <fieldset>
         <legend>Transport</legend>
-        <p id="transport-desc" className="fieldset-hint">
-          How you get around — car, public transit, and flights — is often the largest source.
-        </p>
         <div className="field">
           <label htmlFor="car_km">Car distance per week (km)</label>
           <input
             id="car_km"
             type="number"
             min={0}
+            max={MAX_KM_WEEK}
             step="any"
             inputMode="decimal"
             value={input.transport.car_km_per_week}
             onChange={num("transport", "car_km_per_week")}
-            aria-describedby="car_km_hint"
           />
-          <span id="car_km_hint" className="hint">Enter 0 if you don't own or regularly drive a car.</span>
         </div>
         <div className="field">
           <label htmlFor="car_fuel">Car fuel type</label>
@@ -92,8 +94,8 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
             id="transit_km"
             type="number"
             min={0}
+            max={MAX_KM_WEEK}
             step="any"
-            inputMode="decimal"
             value={input.transport.public_transit_km_per_week}
             onChange={num("transport", "public_transit_km_per_week")}
           />
@@ -104,13 +106,11 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
             id="short_flights"
             type="number"
             min={0}
+            max={MAX_FLIGHTS}
             step={1}
-            inputMode="numeric"
             value={input.transport.short_haul_flights_per_year}
             onChange={num("transport", "short_haul_flights_per_year")}
-            aria-describedby="short_flights_hint"
           />
-          <span id="short_flights_hint" className="hint">Flights under ~3 hours / 1,100 km one-way.</span>
         </div>
         <div className="field">
           <label htmlFor="long_flights">Long-haul flights per year</label>
@@ -118,13 +118,11 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
             id="long_flights"
             type="number"
             min={0}
+            max={MAX_FLIGHTS}
             step={1}
-            inputMode="numeric"
             value={input.transport.long_haul_flights_per_year}
             onChange={num("transport", "long_haul_flights_per_year")}
-            aria-describedby="long_flights_hint"
           />
-          <span id="long_flights_hint" className="hint">Flights over ~3 hours / 1,100 km one-way.</span>
         </div>
       </fieldset>
 
@@ -136,8 +134,8 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
             id="electricity"
             type="number"
             min={0}
+            max={MAX_KWH_MONTH}
             step="any"
-            inputMode="decimal"
             value={input.home.electricity_kwh_per_month}
             onChange={num("home", "electricity_kwh_per_month")}
           />
@@ -148,8 +146,8 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
             id="gas"
             type="number"
             min={0}
+            max={MAX_KWH_MONTH}
             step="any"
-            inputMode="decimal"
             value={input.home.natural_gas_kwh_per_month}
             onChange={num("home", "natural_gas_kwh_per_month")}
           />
@@ -160,13 +158,13 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
             id="household"
             type="number"
             min={1}
+            max={MAX_HOUSEHOLD}
             step={1}
-            inputMode="numeric"
+            aria-describedby="household-hint"
             value={input.home.household_size}
             onChange={num("home", "household_size")}
-            aria-describedby="household_hint"
           />
-          <span id="household_hint" className="hint">
+          <span className="hint" id="household-hint">
             Home energy is shared across this many people.
           </span>
         </div>
@@ -175,7 +173,7 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
       <fieldset>
         <legend>Diet &amp; consumption</legend>
         <div className="field">
-          <label htmlFor="diet">Diet type</label>
+          <label htmlFor="diet">Diet</label>
           <select
             id="diet"
             value={input.diet}
@@ -194,13 +192,11 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
             id="goods"
             type="number"
             min={0}
+            max={MAX_USD_MONTH}
             step="any"
-            inputMode="decimal"
             value={input.consumption.goods_spend_usd_per_month}
             onChange={num("consumption", "goods_spend_usd_per_month")}
-            aria-describedby="goods_hint"
           />
-          <span id="goods_hint" className="hint">Clothing, electronics, household items, etc.</span>
         </div>
         <div className="field">
           <label htmlFor="waste">Landfill waste per week (kg)</label>
@@ -208,8 +204,8 @@ export function CalculatorForm({ onSubmit, loading }: Props) {
             id="waste"
             type="number"
             min={0}
+            max={MAX_WASTE_WEEK}
             step="any"
-            inputMode="decimal"
             value={input.consumption.waste_kg_per_week}
             onChange={num("consumption", "waste_kg_per_week")}
           />

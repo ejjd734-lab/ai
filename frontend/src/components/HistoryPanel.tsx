@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { Entry } from "../lib/types";
 import { formatDate, formatTonnes } from "../lib/format";
 
@@ -6,7 +7,7 @@ interface Props {
 }
 
 /** Tracking history: shows past footprint snapshots so users see their trend. */
-export function HistoryPanel({ entries }: Props) {
+export const HistoryPanel = memo(function HistoryPanel({ entries }: Props) {
   if (entries.length === 0) {
     return (
       <section className="card" aria-labelledby="history-heading">
@@ -55,4 +56,4 @@ export function HistoryPanel({ entries }: Props) {
       </table>
     </section>
   );
-}
+});

@@ -14,9 +14,7 @@ _DEVICE_ID = Path(min_length=8, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")
 
 
 @router.post("", response_model=Entry, status_code=201)
-def create_entry(
-    payload: EntryCreate, repo: EntryRepository = Depends(get_repository)
-) -> Entry:
+def create_entry(payload: EntryCreate, repo: EntryRepository = Depends(get_repository)) -> Entry:
     """Persist a footprint entry for the (anonymous) device."""
     return repo.add(payload.device_id, payload.input, payload.result)
 

@@ -28,10 +28,6 @@ class Settings(BaseSettings):
     # CORS (the SPA is same-origin in prod; this matters for local dev).
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
-    # Request body size limit (bytes). Default 1 MB — ample for JSON payloads.
-    # Rejects oversized payloads before they reach application logic.
-    max_request_body_bytes: int = 1_048_576  # 1 MB
-
     @property
     def origins_list(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]

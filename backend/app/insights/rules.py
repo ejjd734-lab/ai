@@ -82,7 +82,7 @@ def _diet_recommendation(data: CarbonInput) -> Recommendation | None:
     # Suggest stepping one rung down the ladder.
     target = _DIET_LADDER[idx + 1]
     saving = round(factors.DIET_ANNUAL_KG[current] - factors.DIET_ANNUAL_KG[target], 2)
-    if saving <= 0:  # pragma: no cover
+    if saving <= 0:
         return None
     return Recommendation(
         category="diet",
@@ -103,9 +103,7 @@ def _consumption_recommendation(amount: float) -> Recommendation | None:
     )
 
 
-def generate_rule_based_insights(
-    data: CarbonInput, result: FootprintResult
-) -> InsightsResponse:
+def generate_rule_based_insights(data: CarbonInput, result: FootprintResult) -> InsightsResponse:
     """Produce ranked, quantified recommendations from the footprint breakdown."""
     builders = {
         "transport": lambda amt: _transport_recommendation(data, amt),

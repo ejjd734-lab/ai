@@ -19,9 +19,7 @@ def calculate(payload: CarbonInput) -> FootprintResult:
 
 
 @router.post("/insights", response_model=InsightsResponse)
-def insights(
-    payload: CarbonInput, settings: Settings = Depends(get_settings)
-) -> InsightsResponse:
+def insights(payload: CarbonInput, settings: Settings = Depends(get_settings)) -> InsightsResponse:
     """Return personalized reduction advice (Gemini, with rule-based fallback)."""
     result = calculate_footprint(payload)
     return generate_insights(payload, result, settings)

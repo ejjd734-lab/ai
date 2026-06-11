@@ -4,15 +4,18 @@
 :root {
   --bg: #f5f7f6;
   --surface: #ffffff;
-  --text: #14201b; /* ~15:1 on surface */
-  --muted: #44524c; /* ~7:1 on surface */
-  --primary: #0b6e4f; /* ~5.4:1 on white */
+  --text: #14201b;
+  --muted: #44524c;
+  --primary: #0b6e4f;
   --primary-dark: #07543c;
-  --accent: #b3541e; /* warning/over-target, ~4.6:1 on white */
+  --accent: #b3541e;
   --border: #c9d3ce;
   --focus: #1558d6;
   --radius: 10px;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --transition-fast: 0.15s ease;
+  --transition-med: 0.25s ease;
 }
 
 * {
@@ -27,12 +30,20 @@ body {
   line-height: 1.5;
 }
 
-/* Visible keyboard focus everywhere. */
+/* ─── Focus ───────────────────────────────────────────────────────────── */
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(21, 88, 214, 0.22);
+}
+
+/* ─── Skip link ───────────────────────────────────────────────────────── */
 .skip-link {
   position: absolute;
   left: -999px;
@@ -47,6 +58,7 @@ body {
   left: 0;
 }
 
+/* ─── Header ──────────────────────────────────────────────────────────── */
 header.app-header {
   background: var(--primary-dark);
   color: #fff;
@@ -62,6 +74,7 @@ header.app-header p {
   font-size: 0.95rem;
 }
 
+/* ─── Layout ──────────────────────────────────────────────────────────── */
 main {
   max-width: 880px;
   margin: 0 auto;
@@ -70,18 +83,25 @@ main {
   gap: 1.25rem;
 }
 
+/* ─── Card ────────────────────────────────────────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.25rem;
   box-shadow: var(--shadow);
+  transition: box-shadow var(--transition-fast);
 }
 .card h2 {
   margin-top: 0;
   font-size: 1.15rem;
 }
+/* Lift the save-button card on hover */
+.card:has(button:only-child):hover {
+  box-shadow: var(--shadow-lg);
+}
 
+/* ─── Form fields ─────────────────────────────────────────────────────── */
 .field {
   display: grid;
   gap: 0.3rem;
@@ -102,6 +122,11 @@ select {
   border-radius: 8px;
   background: #fff;
   color: var(--text);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+input:hover,
+select:hover {
+  border-color: var(--primary);
 }
 fieldset {
   border: 1px solid var(--border);
@@ -114,6 +139,7 @@ legend {
   padding: 0 0.4rem;
 }
 
+/* ─── Buttons ─────────────────────────────────────────────────────────── */
 .btn {
   font: inherit;
   font-weight: 600;
@@ -123,20 +149,32 @@ legend {
   padding: 0.6rem 1.1rem;
   background: var(--primary);
   color: #fff;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast),
+    transform var(--transition-fast);
 }
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: var(--primary-dark);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
 }
 .btn.secondary {
   background: #fff;
   color: var(--primary-dark);
   border: 2px solid var(--primary);
 }
+.btn.secondary:hover:not(:disabled) {
+  background: #f1f8f5;
+}
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
+/* ─── Result totals ───────────────────────────────────────────────────── */
 .total {
   font-size: 1.6rem;
   font-weight: 700;
@@ -148,7 +186,16 @@ legend {
   color: var(--primary);
 }
 
-/* Bar chart (hand-rolled, accessible). */
+/* ─── Bar chart (GPU-composited via transform:scaleX) ─────────────────── */
+@keyframes grow-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(var(--bar-pct, 0));
+  }
+}
+
 .bar-row {
   display: grid;
   grid-template-columns: 9rem 1fr auto;
@@ -165,20 +212,70 @@ legend {
 .bar-fill {
   background: var(--primary);
   height: 100%;
+  transform-origin: left;
+  transform: scaleX(var(--bar-pct, 0));
+  animation: grow-bar 0.55s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+/* ─── Skeleton loading ────────────────────────────────────────────────── */
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--border) 25%, #e8eeeb 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+.skeleton-text {
+  height: 1rem;
+  margin: 0.5rem 0;
+}
+.skeleton-text.wide {
+  width: 75%;
+}
+.skeleton-text.narrow {
+  width: 45%;
+}
+.skeleton-bar-row {
+  display: grid;
+  grid-template-columns: 9rem 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.6rem 0;
+}
+
+/* ─── Misc lists ──────────────────────────────────────────────────────── */
+.plain-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ─── Recommendation cards ────────────────────────────────────────────── */
 .recommendation {
   border-left: 4px solid var(--primary);
   padding: 0.6rem 0.9rem;
   background: #f1f8f5;
   border-radius: 0 8px 8px 0;
   margin: 0.6rem 0;
+  transition: background-color var(--transition-fast);
+}
+.recommendation:hover {
+  background: #e6f4ee;
 }
 .recommendation .saving {
   font-weight: 700;
   color: var(--primary-dark);
+  margin-top: 0.25rem;
 }
 
+/* ─── Badge ───────────────────────────────────────────────────────────── */
 .badge {
   display: inline-block;
   font-size: 0.75rem;
@@ -191,6 +288,7 @@ legend {
   color: var(--primary-dark);
 }
 
+/* ─── History table ───────────────────────────────────────────────────── */
 table.history {
   width: 100%;
   border-collapse: collapse;
@@ -201,12 +299,20 @@ table.history td {
   padding: 0.5rem 0.6rem;
   border-bottom: 1px solid var(--border);
 }
+table.history tbody tr {
+  transition: background-color var(--transition-fast);
+}
+table.history tbody tr:hover {
+  background: #f5f9f7;
+}
 
+/* ─── Error ───────────────────────────────────────────────────────────── */
 .error {
   color: var(--accent);
   font-weight: 600;
 }
 
+/* ─── Accessibility helpers ───────────────────────────────────────────── */
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -219,38 +325,20 @@ table.history td {
   border: 0;
 }
 
+/* ─── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .bar-row {
     grid-template-columns: 7rem 1fr auto;
   }
 }
 
+/* ─── Reduced motion: kill ALL transitions and animations ─────────────── */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
-}
-
-footer.app-footer {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  text-align: center;
-  padding: 1rem 1.25rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-footer.app-footer p {
-  margin: 0;
-}
-
-.form-intro {
-  color: var(--muted);
-  font-size: 0.9rem;
-  margin: 0 0 1rem;
-}
-
-.fieldset-hint {
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin: 0 0 0.75rem;
 }

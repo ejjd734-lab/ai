@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { FootprintResult } from "../lib/types";
 import { categoryLabel, formatKg, formatTonnes } from "../lib/format";
 
@@ -6,11 +7,11 @@ interface Props {
 }
 
 /**
- * Shows the total footprint and a per-category bar chart. The chart is built
- * from semantic markup with text values beside each bar, so it is fully
- * understandable without color or vision (no canvas, no color-only encoding).
+ * Shows the total footprint and a per-category bar chart.
+ * Bars animate in via CSS transform:scaleX (GPU-composited, no layout thrash).
+ * The chart is backed by an accessible data table so it works without vision or color.
  */
-export function ResultBreakdown({ result }: Props) {
+export const ResultBreakdown = memo(function ResultBreakdown({ result }: Props) {
   const entries = Object.entries(result.breakdown_kg);
   const max = Math.max(1, ...entries.map(([, v]) => v));
   const overTarget = result.comparison.ratio_to_sustainable_target > 1;
@@ -40,7 +41,11 @@ export function ResultBreakdown({ result }: Props) {
           <div className="bar-row" key={key}>
             <span>{categoryLabel(key)}</span>
             <span className="bar-track" aria-hidden="true">
-              <span className="bar-fill" style={{ width: `${(value / max) * 100}%` }} />
+              {/* --bar-pct drives both the CSS animation endpoint and the resting transform */}
+              <span
+                className="bar-fill"
+                style={{ "--bar-pct": value / max } as React.CSSProperties}
+              />
             </span>
             <span>{formatKg(value)}</span>
           </div>
@@ -67,4 +72,4 @@ export function ResultBreakdown({ result }: Props) {
       </table>
     </section>
   );
-}
+});

@@ -62,7 +62,9 @@ def _build_prompt(data: CarbonInput, result: FootprintResult) -> str:
     )
 
 
-def _call_gemini(data: CarbonInput, result: FootprintResult, settings: Settings) -> InsightsResponse:
+def _call_gemini(
+    data: CarbonInput, result: FootprintResult, settings: Settings
+) -> InsightsResponse:
     """Invoke Gemini on Vertex AI and parse a structured response.
 
     Imported lazily so the SDK/credentials are only required when actually used —
@@ -71,9 +73,7 @@ def _call_gemini(data: CarbonInput, result: FootprintResult, settings: Settings)
     from google import genai
     from google.genai import types
 
-    client = genai.Client(
-        vertexai=True, project=settings.project_id, location=settings.region
-    )
+    client = genai.Client(vertexai=True, project=settings.project_id, location=settings.region)
     response = client.models.generate_content(
         model=settings.gemini_model,
         contents=_build_prompt(data, result),
@@ -114,6 +114,6 @@ def generate_insights(
         return generate_rule_based_insights(data, result)
     try:
         return _call_gemini(data, result, settings)
-    except Exception as exc:  # noqa: BLE001 — any failure must degrade gracefully
+    except Exception as exc:  # deliberately broad: any failure must degrade gracefully
         logger.warning("Gemini insight generation failed, using rule-based fallback: %s", exc)
         return generate_rule_based_insights(data, result)

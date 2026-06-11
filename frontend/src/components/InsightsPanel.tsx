@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { InsightsResponse } from "../lib/types";
 import { categoryLabel, formatKg } from "../lib/format";
 
@@ -6,7 +7,7 @@ interface Props {
 }
 
 /** Personalized summary + ranked, quantified reduction actions. */
-export function InsightsPanel({ insights }: Props) {
+export const InsightsPanel = memo(function InsightsPanel({ insights }: Props) {
   const sourceLabel = insights.source === "gemini" ? "AI-personalized" : "Smart rules";
 
   return (
@@ -21,7 +22,7 @@ export function InsightsPanel({ insights }: Props) {
       <p>{insights.summary}</p>
 
       <h3>Recommended actions</h3>
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+      <ul className="plain-list">
         {insights.recommendations.map((rec, i) => (
           <li className="recommendation" key={`${rec.category}-${i}`}>
             <strong>{categoryLabel(rec.category)}:</strong> {rec.action}
@@ -33,4 +34,4 @@ export function InsightsPanel({ insights }: Props) {
       </ul>
     </section>
   );
-}
+});
